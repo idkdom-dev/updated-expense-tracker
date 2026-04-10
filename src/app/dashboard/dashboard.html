@@ -5,7 +5,9 @@
       <div class="card shadow-sm">
         <div class="card-body">
           <h5 class="card-title">Total Expense Cost</h5>
-          <h3 class="text-success">${{ totalExpenses }}</h3>
+          <h3 class="text-success">
+            {{ totalExpenses().toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }}
+          </h3>
         </div>
       </div>
     </div>
@@ -13,7 +15,7 @@
       <div class="card shadow-sm">
         <div class="card-body">
           <h5 class="card-title">Number of Expenses</h5>
-          <h3 class="text-success">{{ count }}</h3>
+          <h3 class="text-success">{{ count() }}</h3>
         </div>
       </div>
     </div>
@@ -21,7 +23,9 @@
       <div class="card shadow-sm">
         <div class="card-body">
           <h5 class="card-title">Highest Expense</h5>
-          <h3 class="text-success">${{ highest }}</h3>
+          <h3 class="text-success">
+            {{ highest().toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }}
+          </h3>
         </div>
       </div>
     </div>
@@ -29,7 +33,9 @@
       <div class="card shadow-sm">
         <div class="card-body">
           <h5 class="card-title">Average Expense</h5>
-          <h3 class="text-success">${{ average }}</h3>
+          <h3 class="text-success">
+            {{ average().toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }}
+          </h3>
         </div>
       </div>
     </div>

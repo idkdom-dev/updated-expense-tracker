@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { ExpenseService } from '../expense-service';
 
 @Component({
@@ -10,21 +10,17 @@ import { ExpenseService } from '../expense-service';
 export class Dashboard {
   constructor(public expenseService: ExpenseService) {}
 
-  get totalExpenses(): number {
-    return this.expenseService.expenses().reduce((s, e) => s + e.amount, 0);
-  }
+  totalExpenses = computed(() => this.expenseService.expenses().reduce((s, e) => s + e.amount, 0));
 
-  get count(): number {
-    return this.expenseService.expenses().length;
-  }
+  count = computed(() => this.expenseService.expenses().length);
 
-  get highest(): number {
+  highest = computed(() => {
     const arr = this.expenseService.expenses();
     return arr.length ? Math.max(...arr.map((e) => e.amount)) : 0;
-  }
+  });
 
-  get average(): number {
+  average = computed(() => {
     const arr = this.expenseService.expenses();
     return arr.length ? arr.reduce((s, e) => s + e.amount, 0) / arr.length : 0;
-  }
+  });
 }

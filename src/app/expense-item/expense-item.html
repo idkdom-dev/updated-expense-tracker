@@ -5,7 +5,13 @@
       <small class="fw-semibold" style="color: teal"> {{ expense?.category }} </small>
     </div>
     <div class="text-end">
-      <div class="fw-bold text-danger">${{ expense?.amount }}</div>
+      <div class="fw-bold text-danger">
+        {{
+          expense
+            ? expense.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+            : ''
+        }}
+      </div>
       <a class="btn btn-primary btn-sm m-2" routerLink="edit-expense">Edit</a>
       <a class="btn btn-danger btn-sm m-2" routerLink="">Delete</a>
     </div>
