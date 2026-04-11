@@ -18,6 +18,8 @@ export class ExpenseItem {
     this.expenseId ? this.expenseService.getExpenseById(this.expenseId) : undefined,
   );
 
+  highlight = computed(() => (this.expense()?.amount ?? 0) > 100);
+
   deleteExpense() {
     if (!this.expenseId) return;
     this.expenseService.removeExpense(this.expenseId);

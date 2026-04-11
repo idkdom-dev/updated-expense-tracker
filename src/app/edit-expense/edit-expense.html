@@ -30,13 +30,11 @@
           <label class="form-label">Category</label>
           <select name="category" [(ngModel)]="category" required class="form-select">
             <option value disabled selected>Select category</option>
-            <option value="Work">Work</option>
-            <option value="Personal">Personal</option>
-            <option value="Grocery">Grocery</option>
-            <option value="Utilities">Utilities</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Travel">Travel</option>
-            <option value="Food">Food</option>
+            @for (category of expenseService.categories(); track category) {
+              <option [value]="category">
+                {{ category }}
+              </option>
+            }
           </select>
         </div>
         <button type="submit" class="btn btn-primary">Save Expense</button>

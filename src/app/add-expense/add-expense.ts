@@ -1,12 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { NgFor } from '@angular/common';
 import { ExpenseService } from '../expense-service';
 import { Expense } from '../expense';
 
 @Component({
   selector: 'app-add-expense',
-  imports: [FormsModule],
+  imports: [FormsModule, NgFor],
   templateUrl: './add-expense.html',
   styleUrl: './add-expense.css',
 })
@@ -29,5 +30,9 @@ export class AddExpense {
     };
 
     this.expenseService.addExpense(expense);
+    this.title = '';
+    this.amount = null;
+    this.category = '';
+    this.router.navigate(['/expenses']);
   }
 }

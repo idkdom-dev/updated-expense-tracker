@@ -1,12 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { NgFor } from '@angular/common';
 import { ExpenseService } from '../expense-service';
 import { Expense } from '../expense';
 
 @Component({
   selector: 'app-edit-expense',
-  imports: [FormsModule],
+  imports: [FormsModule, NgFor],
   templateUrl: './edit-expense.html',
   styleUrl: './edit-expense.css',
 })
@@ -23,13 +24,13 @@ export class EditExpense implements OnInit {
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.router.navigate(['view-expenses']);
+      this.router.navigate(['/expenses']);
       return;
     }
 
     const expense = this.expenseService.getExpenseById(id);
     if (!expense) {
-      this.router.navigate(['view-expenses']);
+      this.router.navigate(['/expenses']);
       return;
     }
 
@@ -50,6 +51,6 @@ export class EditExpense implements OnInit {
     };
 
     this.expenseService.updateExpense(updatedExpense);
-    this.router.navigate(['view-expenses']);
+    this.router.navigate(['/expenses']);
   }
 }

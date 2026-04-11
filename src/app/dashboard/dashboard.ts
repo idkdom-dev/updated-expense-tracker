@@ -10,17 +10,8 @@ import { ExpenseService } from '../expense-service';
 export class Dashboard {
   expenseService = inject(ExpenseService);
 
-  totalExpenses = computed(() => this.expenseService.expenses().reduce((s, e) => s + e.amount, 0));
-
-  count = computed(() => this.expenseService.expenses().length);
-
-  highest = computed(() => {
-    const arr = this.expenseService.expenses();
-    return arr.length ? Math.max(...arr.map((e) => e.amount)) : 0;
-  });
-
-  average = computed(() => {
-    const arr = this.expenseService.expenses();
-    return arr.length ? arr.reduce((s, e) => s + e.amount, 0) / arr.length : 0;
-  });
+  totalExpenses = this.expenseService.totalExpense;
+  transactionCount = this.expenseService.transactionCount;
+  highestExpense = this.expenseService.highestExpense;
+  averageExpense = this.expenseService.averageExpense;
 }

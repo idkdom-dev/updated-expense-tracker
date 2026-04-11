@@ -1,0 +1,35 @@
+.highlighted {
+  border: 2px solid green;
+}
+
+.category-work {
+  background-color: #eaf4ff;
+}
+
+.category-personal {
+  background-color: #ffe8e6;
+}
+
+.category-grocery {
+  background-color: #e8f5e9;
+}
+
+.category-utilities {
+  background-color: #fff8e1;
+}
+
+.category-shopping {
+  background-color: #f3e5f5;
+}
+
+.category-travel {
+  background-color: #e0f7fa;
+}
+
+.category-food {
+  background-color: #fff3e0;
+}
+
+.category-label {
+  color: teal;
+}
