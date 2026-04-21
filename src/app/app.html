@@ -1,6 +1,6 @@
 <nav class="navbar navbar-dark navbar-expand-lg bg-dark">
   <div class="container-fluid">
-    <a class="navbar-brand">Expense Tracker</a>
+    <a class="navbar-brand" routerLink="" style="cursor: pointer">Expense Tracker</a>
     <button
       class="navbar-toggler"
       type="button"
@@ -14,15 +14,32 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item ms-2">
-          <a class="btn btn-secondary nav-item" routerLink="">Dashboard</a>
-        </li>
-        <li class="nav-item ms-2">
-          <a class="btn btn-secondary nav-item" routerLink="add">Add Expense</a>
-        </li>
-        <li class="nav-item ms-2">
-          <a class="btn btn-secondary nav-item" routerLink="expenses">View Expenses</a>
-        </li>
+        @if (authService.isLoggedIn()) {
+          <li class="nav-item ms-2">
+            <a class="btn btn-secondary nav-item" routerLink="">Dashboard</a>
+          </li>
+          <li class="nav-item ms-2">
+            <a class="btn btn-secondary nav-item" routerLink="add">Add Transaction</a>
+          </li>
+          <li class="nav-item ms-2">
+            <a class="btn btn-secondary nav-item" routerLink="expenses">View Transactions</a>
+          </li>
+          <li class="nav-item ms-2">
+            <a class="btn btn-info nav-item" routerLink="account">Manage Account</a>
+          </li>
+          <li class="nav-item ms-2">
+            <button class="btn btn-danger nav-item" (click)="authService.signOutUser()">
+              Logout
+            </button>
+          </li>
+        } @else {
+          <li class="nav-item ms-2">
+            <a class="btn btn-primary nav-item" routerLink="login">Login</a>
+          </li>
+          <li class="nav-item ms-2">
+            <a class="btn btn-success nav-item" routerLink="register">Register</a>
+          </li>
+        }
       </ul>
     </div>
   </div>

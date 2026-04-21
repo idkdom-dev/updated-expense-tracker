@@ -1,43 +1,321 @@
-<div class="container mt-4">
-  <h2 class="text-center mb-4 shadow-sm">Dashboard</h2>
-  <div class="row text-center">
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Total Expense Cost</h5>
-          <h3 class="text-success">
-            {{ totalExpenses().toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }}
-          </h3>
+<div class="container py-4 dashboard-shell">
+  <section class="card border-0 shadow-sm mb-4 dashboard-header">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+        <div>
+          <h2 class="mb-1">Dashboard</h2>
+          <p class="mb-0 dashboard-subtitle">
+            Monitor spending trends, budget health, and transaction activity.
+          </p>
+        </div>
+        <div class="d-flex gap-2">
+          <a class="btn btn-light fw-semibold" routerLink="/add">Add Transaction</a>
+          <a class="btn btn-outline-light fw-semibold" routerLink="/expenses">View All</a>
         </div>
       </div>
     </div>
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Number of Expenses</h5>
-          <h3 class="text-success">{{ transactionCount() }}</h3>
+  </section>
+
+  <section class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Search & Filters</h5>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Date range</label>
+          <select
+            #dateWindow
+            class="form-select"
+            [value]="selectedDateWindow()"
+            (change)="setDateWindow(dateWindow.value)"
+          >
+            <option value="all">All dates</option>
+            <option value="thisMonth">This month</option>
+            <option value="last30">Last 30 days</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Category</label>
+          <select
+            #categoryFilter
+            class="form-select"
+            [value]="selectedCategory()"
+            (change)="setCategory(categoryFilter.value)"
+          >
+            @for (category of filterCategories(); track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Amount range</label>
+          <select
+            #amountRange
+            class="form-select"
+            [value]="selectedAmountRange()"
+            (change)="setAmountRange(amountRange.value)"
+          >
+            <option value="all">All amounts</option>
+            <option value="0-50">$0 - $50</option>
+            <option value="50-200">$50 - $200</option>
+            <option value="200+">$200+</option>
+          </select>
         </div>
       </div>
     </div>
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
+  </section>
+
+  <section class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm h-100 kpi-card">
         <div class="card-body">
-          <h5 class="card-title">Highest Expense</h5>
-          <h3 class="text-success">
-            {{ highestExpense().toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }}
-          </h3>
+          <p class="metric-label">Total Expenses</p>
+          <h4 class="metric-value text-danger">{{ formatCurrency(totalExpenses()) }}</h4>
         </div>
       </div>
     </div>
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm h-100 kpi-card">
         <div class="card-body">
-          <h5 class="card-title">Average Expense</h5>
-          <h3 class="text-success">
-            {{ averageExpense().toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }}
-          </h3>
+          <p class="metric-label">Total Income</p>
+          <h4 class="metric-value text-success">{{ formatCurrency(totalIncome()) }}</h4>
         </div>
       </div>
     </div>
-  </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm h-100 kpi-card">
+        <div class="card-body">
+          <p class="metric-label">Net Cash Flow</p>
+          <h4
+            class="metric-value"
+            [class.text-success]="netCashFlow() >= 0"
+            [class.text-danger]="netCashFlow() < 0"
+          >
+            {{ formatCurrency(netCashFlow()) }}
+          </h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm h-100 kpi-card">
+        <div class="card-body">
+          <p class="metric-label">Transactions</p>
+          <h4 class="metric-value">{{ transactionCount() }}</h4>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="card-title mb-0">Budget vs Actual</h5>
+        <span
+          class="fw-semibold"
+          [class.text-success]="budgetUsedPercent() < 80"
+          [class.text-warning]="budgetUsedPercent() >= 80 && budgetUsedPercent() < 100"
+          [class.text-danger]="budgetUsedPercent() >= 100"
+        >
+          {{ budgetStatus() }}
+        </span>
+      </div>
+      <p class="text-muted mb-3">
+        {{ formatCurrency(totalExpenses()) }} used of {{ formatCurrency(monthlyBudgetGoal()) }}
+      </p>
+      <div class="progress progress-lg">
+        <div
+          class="progress-bar"
+          [style.width.%]="budgetProgressPercent()"
+          [class.bg-success]="budgetUsedPercent() < 80"
+          [class.bg-warning]="budgetUsedPercent() >= 80 && budgetUsedPercent() < 100"
+          [class.bg-danger]="budgetUsedPercent() >= 100"
+        ></div>
+      </div>
+      <small class="text-muted mt-2 d-block">{{ formatPercent(budgetUsedPercent()) }} consumed</small>
+    </div>
+  </section>
+
+  <section class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Category-wise Spending</h5>
+          @if (categorySpending().length > 0) {
+            <div class="d-flex flex-column flex-md-row align-items-center gap-3 mt-3">
+              <div class="pie-chart" [style.background]="pieChartGradient()"></div>
+              <ul class="list-unstyled w-100 mb-0">
+                @for (item of categorySpending(); track item.category) {
+                  <li class="d-flex justify-content-between align-items-center py-1">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="legend-swatch" [style.background]="item.color"></span>
+                      <span>{{ item.category }}</span>
+                    </div>
+                    <div class="text-end">
+                      <div class="fw-semibold">{{ formatCurrency(item.amount) }}</div>
+                      <small class="text-muted">{{ formatPercent(item.percent) }}</small>
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            <p class="text-muted mb-0 mt-3">No expense data yet to populate the category chart.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Income vs Expense</h5>
+          <div class="comparison-chart mt-4">
+            <div class="comparison-row">
+              <span class="comparison-label text-success">Income</span>
+              <div class="comparison-track">
+                <div class="comparison-fill comparison-income" [style.width.%]="incomeBarPercent()"></div>
+              </div>
+              <span class="comparison-value">{{ formatCurrency(totalIncome()) }}</span>
+            </div>
+
+            <div class="comparison-row">
+              <span class="comparison-label text-danger">Expense</span>
+              <div class="comparison-track">
+                <div
+                  class="comparison-fill comparison-expense"
+                  [style.width.%]="expenseBarPercent()"
+                ></div>
+              </div>
+              <span class="comparison-value">{{ formatCurrency(totalExpenses()) }}</span>
+            </div>
+          </div>
+          <p class="text-muted mb-0 mt-4">
+            Net position:
+            <span [class.text-success]="netCashFlow() >= 0" [class.text-danger]="netCashFlow() < 0">
+              {{ formatCurrency(netCashFlow()) }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="row g-3 mb-4">
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Budget Alerts</h5>
+          @if (budgetAlerts().length > 0) {
+            <ul class="list-group list-group-flush mt-2">
+              @for (alert of budgetAlerts(); track alert.category) {
+                <li class="list-group-item px-0">
+                  <div class="fw-semibold">{{ alert.category }}</div>
+                  <small class="text-muted d-block">
+                    {{ formatPercent(alert.usagePercent) }} of {{ formatCurrency(alert.budget) }} used
+                  </small>
+                  <small [class.text-danger]="alert.status === 'Exceeded'" [class.text-warning]="alert.status === 'Nearing limit'">
+                    {{ alert.status }}
+                  </small>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="text-muted mb-0 mt-2">
+              No budget warnings. All tracked categories are currently below 80% usage.
+            </p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Category Budgets</h5>
+          <div class="mt-3 budget-list">
+            @for (row of categoryBudgetProgress(); track row.category) {
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <div class="fw-semibold">{{ row.category }}</div>
+                  <small
+                    [class.text-success]="row.status === 'Safe'"
+                    [class.text-warning]="row.status === 'Nearing limit'"
+                    [class.text-danger]="row.status === 'Exceeded'"
+                  >
+                    {{ row.status }}
+                  </small>
+                </div>
+                <small class="text-muted d-block mb-1">
+                  {{ formatCurrency(row.spent) }} / {{ formatCurrency(row.budget) }}
+                </small>
+                <div class="progress">
+                  <div
+                    class="progress-bar"
+                    [style.width.%]="row.progressPercent"
+                    [style.background]="row.color"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card border-0 shadow-sm">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="card-title mb-0">Recent Transactions</h5>
+        <a class="btn btn-sm btn-outline-primary" routerLink="/expenses">Open full list</a>
+      </div>
+
+      @if (recentTransactions().length > 0) {
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Title</th>
+                <th scope="col">Category</th>
+                <th scope="col">Type</th>
+                <th scope="col" class="text-end">Amount</th>
+                <th scope="col">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (transaction of recentTransactions(); track transaction.id) {
+                <tr>
+                  <td>{{ formatTransactionDate(transaction) }}</td>
+                  <td>{{ transaction.title }}</td>
+                  <td>{{ transaction.category }}</td>
+                  <td>
+                    <span
+                      class="badge"
+                      [class.text-bg-success]="isIncome(transaction)"
+                      [class.text-bg-danger]="!isIncome(transaction)"
+                    >
+                      {{ isIncome(transaction) ? 'Income' : 'Expense' }}
+                    </span>
+                  </td>
+                  <td
+                    class="text-end fw-semibold"
+                    [class.text-success]="isIncome(transaction)"
+                    [class.text-danger]="!isIncome(transaction)"
+                  >
+                    {{ formatTransactionAmount(transaction) }}
+                  </td>
+                  <td class="text-muted">{{ formatTransactionNotes(transaction) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <p class="mb-2">No transactions match the selected filters.</p>
+          <a class="btn btn-primary btn-sm" routerLink="/add">Add your first transaction</a>
+        </div>
+      }
+    </div>
+  </section>
 </div>

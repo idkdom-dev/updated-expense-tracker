@@ -1,0 +1,21 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from 'firebase/app';
+import { getAnalytics } from 'firebase/analytics';
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: 'AIzaSyB2f-XjQZQrGiS3e1a1WKjJoNc3vF8F9dQ',
+  authDomain: 'upgraded-expense-tracker.firebaseapp.com',
+  projectId: 'upgraded-expense-tracker',
+  storageBucket: 'upgraded-expense-tracker.firebasestorage.app',
+  messagingSenderId: '16464146526',
+  appId: '1:16464146526:web:fd35946db8c676df6404cf',
+  measurementId: 'G-1PWZ68GWPK',
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);

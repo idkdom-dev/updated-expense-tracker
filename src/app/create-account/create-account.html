@@ -1,0 +1,101 @@
+<div class="container-fluid mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h3 class="mb-0">Create New Account</h3>
+        </div>
+        <div class="card-body">
+          @if (error()) {
+            <div class="alert alert-danger" role="alert">
+              {{ error() }}
+            </div>
+          }
+
+          <form (ngSubmit)="registerWithEmail()">
+            <div class="mb-3">
+              <label for="fullName" class="form-label">Full Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="fullName"
+                [(ngModel)]="fullName"
+                name="fullName"
+                placeholder="Enter your full name"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label">Email Address</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                [(ngModel)]="email"
+                name="email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                [(ngModel)]="password"
+                name="password"
+                placeholder="Enter a password (minimum 6 characters)"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="confirmPassword" class="form-label">Confirm Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="confirmPassword"
+                [(ngModel)]="confirmPassword"
+                name="confirmPassword"
+                placeholder="Confirm your password"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 mb-3" [disabled]="loading()">
+              @if (loading()) {
+                <span
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Creating account...
+              } @else {
+                Create Account
+              }
+            </button>
+          </form>
+
+          <div class="d-grid gap-2 mb-3">
+            <button
+              type="button"
+              class="btn btn-outline-danger"
+              (click)="signUpWithGoogle()"
+              [disabled]="loading()"
+            >
+              <i class="bi bi-google"></i> Sign up with Google
+            </button>
+          </div>
+
+          <p class="text-center mb-0">
+            Already have an account?
+            <a routerLink="/login">Login here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
