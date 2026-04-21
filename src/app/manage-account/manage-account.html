@@ -89,6 +89,7 @@
                   <tr>
                     <th>Category</th>
                     <th>Budget Limit</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -110,10 +111,157 @@
                           />
                         </div>
                       </td>
+                      <td>
+                        @if (expenseService.categoryMetadata()[category]?.isCustom) {
+                          <div class="btn-group" role="group">
+                            <button
+                              type="button"
+                              class="btn btn-outline-primary btn-sm"
+                              (click)="startEditCategory(category)"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              class="btn btn-outline-danger btn-sm"
+                              (click)="deleteCategory(category)"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        }
+                      </td>
                     </tr>
                   }
                 </tbody>
               </table>
+            </div>
+
+            <!-- Add Custom Category Form -->
+            <div class="mt-4">
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                (click)="toggleAddCategoryForm()"
+              >
+                {{ showAddCategoryForm() ? 'Cancel' : 'Add Custom Category' }}
+              </button>
+
+              @if (showAddCategoryForm()) {
+                <div class="card mt-3">
+                  <div class="card-body">
+                    <h6 class="card-title">Add New Category</h6>
+                    <div class="mb-3">
+                      <label for="newCategoryName" class="form-label">Category Name</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="newCategoryName"
+                        [(ngModel)]="newCategoryName"
+                        placeholder="Enter category name"
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="newCategoryColor" class="form-label">Color</label>
+                      <input
+                        type="color"
+                        class="form-control form-control-color"
+                        id="newCategoryColor"
+                        [(ngModel)]="newCategoryColor"
+                        title="Choose your color"
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="newCategoryIcon" class="form-label">Icon</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="newCategoryIcon"
+                        [(ngModel)]="newCategoryIcon"
+                        placeholder="Enter icon name (e.g., 'shopping-cart')"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      (click)="addCustomCategory()"
+                      [disabled]="loading()"
+                    >
+                      @if (loading()) {
+                        <span
+                          class="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                      }
+                      Add Category
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Edit Category Form -->
+              @if (editingCategory) {
+                <div class="card mt-3">
+                  <div class="card-body">
+                    <h6 class="card-title">Edit Category</h6>
+                    <div class="mb-3">
+                      <label for="editCategoryName" class="form-label">Category Name</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="editCategoryName"
+                        [(ngModel)]="editingCategoryName"
+                        placeholder="Enter new category name"
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="editCategoryColor" class="form-label">Color</label>
+                      <input
+                        type="color"
+                        class="form-control form-control-color"
+                        id="editCategoryColor"
+                        [(ngModel)]="editingColor"
+                        title="Choose your color"
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="editCategoryIcon" class="form-label">Icon</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="editCategoryIcon"
+                        [(ngModel)]="editingIcon"
+                        placeholder="Enter icon name"
+                      />
+                    </div>
+                    <div class="btn-group" role="group">
+                      <button
+                        type="button"
+                        class="btn btn-primary"
+                        (click)="saveEditCategory()"
+                        [disabled]="loading()"
+                      >
+                        @if (loading()) {
+                          <span
+                            class="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                        }
+                        Save Changes
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        (click)="cancelEditCategory()"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
           </div>
 

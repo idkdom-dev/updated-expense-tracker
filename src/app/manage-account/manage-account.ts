@@ -22,6 +22,7 @@ export class ManageAccount {
   newCategoryColor = '#0d6efd';
   newCategoryIcon = 'tag';
   editingCategory: string | null = null;
+  editingCategoryName = '';
   editingColor = '';
   editingIcon = '';
   loading = signal<boolean>(false);
@@ -135,6 +136,7 @@ export class ManageAccount {
 
   startEditCategory(category: string): void {
     this.editingCategory = category;
+    this.editingCategoryName = category;
     this.editingColor = this.getCategoryColor(category);
     this.editingIcon = this.getCategoryIcon(category);
   }
@@ -142,15 +144,37 @@ export class ManageAccount {
   async saveEditCategory(): Promise<void> {
     if (!this.editingCategory) return;
 
+    // Validate new category name
+    if (!this.editingCategoryName.trim()) {
+      this.error.set('Category name is required');
+      return;
+    }
+
+    // Check if name already exists (excluding current category)
+    const existingCategories = this.categories.filter((cat) => cat !== this.editingCategory);
+    if (existingCategories.includes(this.editingCategoryName.trim())) {
+      this.error.set('A category with this name already exists');
+      return;
+    }
+
     try {
       this.loading.set(true);
       this.error.set('');
 
-      await this.expenseService.updateCategoryMetadata(
-        this.editingCategory,
-        this.editingColor,
-        this.editingIcon,
-      );
+      // If category name hasn't changed, just update metadata
+      if (this.editingCategory === this.editingCategoryName.trim()) {
+        await this.expenseService.updateCategoryMetadata(
+          this.editingCategory,
+          this.editingColor,
+          this.editingIcon,
+        );
+      } else {
+        // If name changed, rename the category and update all expenses
+        await this.expenseService.renameCategory(
+          this.editingCategory,
+          this.editingCategoryName.trim(),
+        );
+      }
 
       this.editingCategory = null;
       this.success.set('Category updated successfully!');

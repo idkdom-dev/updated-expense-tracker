@@ -11,6 +11,7 @@ import {
   doc,
   setDoc,
   serverTimestamp,
+  getDoc,
 } from 'firebase/firestore';
 import { firestoreDb } from './firebase';
 import { AuthService } from './auth-service';
@@ -27,25 +28,6 @@ export class ExpenseService {
   categoryMetadata = this.categoryService.categoryMetadata;
 
   expenses = signal<Expense[]>([]);
-  // categories = signal<string[]>([
-  //   'Work',
-  //   'Personal',
-  //   'Grocery',
-  //   'Utilities',
-  //   'Shopping',
-  //   'Travel',
-  //   'Food',
-  // ]);
-
-  // categoryMetadata = signal<Record<string, CategoryMetadata>>({
-  //   Work: { name: 'Work', color: '#0d6efd', icon: 'briefcase', isCustom: false },
-  //   Personal: { name: 'Personal', color: '#6610f2', icon: 'person', isCustom: false },
-  //   Grocery: { name: 'Grocery', color: '#198754', icon: 'shopping-cart', isCustom: false },
-  //   Utilities: { name: 'Utilities', color: '#ffc107', icon: 'lightbulb', isCustom: false },
-  //   Shopping: { name: 'Shopping', color: '#d63384', icon: 'bag', isCustom: false },
-  //   Travel: { name: 'Travel', color: '#0dcaf0', icon: 'plane', isCustom: false },
-  //   Food: { name: 'Food', color: '#fd7e14', icon: 'utensils', isCustom: false },
-  // });
 
   isLoading = signal<boolean>(false);
   error = signal<string>('');
@@ -278,6 +260,81 @@ export class ExpenseService {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error deleting category';
+      this.error.set(message);
+      throw err;
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async renameCategory(oldName: string, newName: string): Promise<void> {
+    const user = this.authService.currentUser();
+    if (!user) {
+      throw new Error('User must be logged in to rename categories');
+    }
+
+    try {
+      this.isLoading.set(true);
+      this.error.set('');
+
+      // First, update all expenses that use the old category name
+      const expensesCollection = collection(firestoreDb, `users/${user.uid}/expenses`);
+      const q = query(expensesCollection, where('category', '==', oldName));
+      const snapshot = await getDocs(q);
+
+      // Update each expense's category
+      const updatePromises = snapshot.docs.map((doc) => {
+        const expenseRef = doc.ref;
+        return updateDoc(expenseRef, { category: newName });
+      });
+
+      // Wait for all expense updates to complete
+      await Promise.all(updatePromises);
+
+      // Update the category metadata in Firebase
+      const categoryRef = doc(firestoreDb, `users/${user.uid}/categories/${oldName}`);
+      const categoryDoc = await getDoc(categoryRef);
+
+      if (categoryDoc.exists()) {
+        const metadata = categoryDoc.data();
+        await setDoc(doc(firestoreDb, `users/${user.uid}/categories/${newName}`), {
+          ...metadata,
+          name: newName,
+        });
+
+        // Delete the old category
+        await deleteDoc(categoryRef);
+      }
+
+      // Update local state
+      this.categories.update((list) => list.map((cat) => (cat === oldName ? newName : cat)));
+      this.categoryMetadata.update((meta) => {
+        const newMeta = { ...meta };
+        const oldMetadata = newMeta[oldName];
+        if (oldMetadata) {
+          newMeta[newName] = { ...oldMetadata, name: newName };
+          delete newMeta[oldName];
+        }
+        return newMeta;
+      });
+
+      // Update category budgets in profile
+      const profile = this.authService.profile();
+      if (profile) {
+        const newCategoryBudgets = { ...profile.categoryBudgets };
+        if (newCategoryBudgets[oldName] !== undefined) {
+          newCategoryBudgets[newName] = newCategoryBudgets[oldName];
+          delete newCategoryBudgets[oldName];
+          // Update the profile in AuthService
+          await this.authService.updateAccountProfile({
+            name: profile.name,
+            monthlyBudgetGoal: profile.monthlyBudgetGoal,
+            categoryBudgets: newCategoryBudgets,
+          });
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error renaming category';
       this.error.set(message);
       throw err;
     } finally {
