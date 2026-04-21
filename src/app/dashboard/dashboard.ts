@@ -63,6 +63,12 @@ export class Dashboard {
         this.categoryBudgets.set(profile.categoryBudgets);
       }
     });
+
+    // Force refresh when expenses change
+    effect(() => {
+      const expenses = this.expenseService.expenses();
+      // This will trigger the computed properties to re-evaluate
+    });
   }
 
   readonly allTransactions = computed<DashboardTransaction[]>(
@@ -70,13 +76,23 @@ export class Dashboard {
   );
 
   readonly filterCategories = computed(() => {
+    // Get unique categories from the actual categories list
     const categories = new Set<string>(['All']);
+
+    // Add all actual categories (this should be updated after rename)
     for (const category of this.expenseService.categories()) {
       categories.add(category);
     }
+
+    // Only add categories from transactions that actually exist in our current categories list
+    // This prevents old renamed categories from appearing in filters
     for (const transaction of this.allTransactions()) {
-      categories.add(transaction.category);
+      // Only add the category if it exists in our current categories list
+      if (this.expenseService.categories().includes(transaction.category)) {
+        categories.add(transaction.category);
+      }
     }
+
     return Array.from(categories);
   });
 

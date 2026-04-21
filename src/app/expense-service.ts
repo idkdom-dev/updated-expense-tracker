@@ -232,32 +232,57 @@ export class ExpenseService {
     }
   }
 
-  async deleteCategory(name: string): Promise<void> {
+  async deleteCategory(categoryName: string): Promise<void> {
     const user = this.authService.currentUser();
     if (!user) {
       throw new Error('User must be logged in to delete categories');
-    }
-
-    const meta = this.categoryMetadata()[name];
-    if (!meta?.isCustom) {
-      throw new Error('Default categories cannot be deleted');
     }
 
     try {
       this.isLoading.set(true);
       this.error.set('');
 
-      // Delete from Firebase
-      const categoryRef = doc(firestoreDb, `users/${user.uid}/categories/${name}`);
+      // First, update all expenses that use this category to "Uncategorized"
+      const expensesCollection = collection(firestoreDb, `users/${user.uid}/expenses`);
+      const q = query(expensesCollection, where('category', '==', categoryName));
+      const snapshot = await getDocs(q);
+
+      // Update each expense's category to "Uncategorized"
+      const updatePromises = snapshot.docs.map((doc) => {
+        const expenseRef = doc.ref;
+        return updateDoc(expenseRef, {
+          category: 'Uncategorized',
+          updatedAt: serverTimestamp(),
+        });
+      });
+
+      // Wait for all expense updates to complete
+      await Promise.all(updatePromises);
+
+      // Delete the category metadata from Firebase
+      const categoryRef = doc(firestoreDb, `users/${user.uid}/categories/${categoryName}`);
       await deleteDoc(categoryRef);
 
       // Update local state
-      this.categories.update((list) => list.filter((c) => c !== name));
+      this.categories.update((list) => list.filter((cat) => cat !== categoryName));
+
       this.categoryMetadata.update((meta) => {
         const newMeta = { ...meta };
-        delete newMeta[name];
+        delete newMeta[categoryName];
         return newMeta;
       });
+
+      // Remove category from profile budgets
+      const profile = this.authService.profile();
+      if (profile) {
+        const newCategoryBudgets = { ...profile.categoryBudgets };
+        delete newCategoryBudgets[categoryName];
+        await this.authService.updateAccountProfile({
+          name: profile.name,
+          monthlyBudgetGoal: profile.monthlyBudgetGoal,
+          categoryBudgets: newCategoryBudgets,
+        });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error deleting category';
       this.error.set(message);
@@ -282,10 +307,13 @@ export class ExpenseService {
       const q = query(expensesCollection, where('category', '==', oldName));
       const snapshot = await getDocs(q);
 
-      // Update each expense's category
+      // Update each expense's category in Firebase
       const updatePromises = snapshot.docs.map((doc) => {
         const expenseRef = doc.ref;
-        return updateDoc(expenseRef, { category: newName });
+        return updateDoc(expenseRef, {
+          category: newName,
+          updatedAt: serverTimestamp(),
+        });
       });
 
       // Wait for all expense updates to complete
@@ -302,12 +330,26 @@ export class ExpenseService {
           name: newName,
         });
 
-        // Delete the old category
+        // Delete the old category metadata
         await deleteDoc(categoryRef);
       }
 
-      // Update local state
-      this.categories.update((list) => list.map((cat) => (cat === oldName ? newName : cat)));
+      // Update local state - proper handling of all updates
+      // Update expenses in local state
+      this.expenses.update((list) =>
+        list.map((expense) =>
+          expense.category === oldName ? { ...expense, category: newName } : expense,
+        ),
+      );
+
+      // Update categories list - remove old, add new, and ensure no duplicates
+      this.categories.update((list) => {
+        const newList = list.map((cat) => (cat === oldName ? newName : cat));
+        // Remove any duplicates and ensure old name is removed
+        return [...new Set(newList)].filter((cat) => cat !== oldName);
+      });
+
+      // Update category metadata
       this.categoryMetadata.update((meta) => {
         const newMeta = { ...meta };
         const oldMetadata = newMeta[oldName];
