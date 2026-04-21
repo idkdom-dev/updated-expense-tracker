@@ -2,14 +2,15 @@ export interface Expense {
   id: string;
   title: string;
   amount: number;
-  category: ExpenseCategory;
+  category: string;
+  date: string; // ISO 8601 format (YYYY-MM-DD)
+  description?: string;
+  userId?: string;
 }
 
-export type ExpenseCategory =
-  | 'Work'
-  | 'Personal'
-  | 'Grocery'
-  | 'Utilities'
-  | 'Shopping'
-  | 'Travel'
-  | 'Food';
+export interface CategoryMetadata {
+  name: string;
+  color: string;
+  icon: string;
+  isCustom?: boolean;
+}

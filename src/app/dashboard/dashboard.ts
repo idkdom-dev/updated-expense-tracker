@@ -1,15 +1,15 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Expense } from '../expense';
 import { ExpenseService } from '../expense-service';
+import { AuthService } from '../auth-service';
+
 type DateWindowFilter = 'all' | 'thisMonth' | 'last30';
 type AmountRangeFilter = 'all' | '0-50' | '50-200' | '200+';
 type TransactionType = 'Income' | 'Expense';
 
 interface DashboardTransaction extends Expense {
   type?: TransactionType;
-  date?: string;
-  notes?: string;
 }
 
 interface CategorySpend {
@@ -37,10 +37,12 @@ interface CategoryBudgetProgress {
 })
 export class Dashboard {
   readonly expenseService = inject(ExpenseService);
+  readonly authService = inject(AuthService);
   readonly selectedDateWindow = signal<DateWindowFilter>('all');
   readonly selectedCategory = signal<string>('All');
   readonly selectedAmountRange = signal<AmountRangeFilter>('all');
   readonly monthlyBudgetGoal = signal<number>(2000);
+  readonly categoryBudgets = signal<Record<string, number>>({});
 
   private readonly fallbackColors = [
     '#0d6efd',
@@ -52,27 +54,16 @@ export class Dashboard {
     '#0dcaf0',
   ];
 
-  private readonly categoryColors: Record<string, string> = {
-    Food: '#fd7e14',
-    Rent: '#6f42c1',
-    Travel: '#0dcaf0',
-    Grocery: '#198754',
-    Utilities: '#ffc107',
-    Shopping: '#d63384',
-    Personal: '#6610f2',
-    Work: '#0d6efd',
-  };
-
-  private readonly categoryBudgets: Record<string, number> = {
-    Food: 450,
-    Rent: 1100,
-    Travel: 250,
-    Grocery: 300,
-    Utilities: 260,
-    Shopping: 220,
-    Personal: 180,
-    Work: 150,
-  };
+  constructor() {
+    // Update monthlyBudgetGoal and categoryBudgets from profile
+    effect(() => {
+      const profile = this.authService.profile();
+      if (profile) {
+        this.monthlyBudgetGoal.set(profile.monthlyBudgetGoal);
+        this.categoryBudgets.set(profile.categoryBudgets);
+      }
+    });
+  }
 
   readonly allTransactions = computed<DashboardTransaction[]>(
     () => this.expenseService.expenses() as DashboardTransaction[],
@@ -99,11 +90,15 @@ export class Dashboard {
   );
 
   readonly expenseTransactions = computed(() =>
-    this.filteredTransactions().filter((transaction) => this.getTransactionType(transaction) === 'Expense'),
+    this.filteredTransactions().filter(
+      (transaction) => this.getTransactionType(transaction) === 'Expense',
+    ),
   );
 
   readonly incomeTransactions = computed(() =>
-    this.filteredTransactions().filter((transaction) => this.getTransactionType(transaction) === 'Income'),
+    this.filteredTransactions().filter(
+      (transaction) => this.getTransactionType(transaction) === 'Income',
+    ),
   );
 
   readonly totalExpenses = computed(() =>
@@ -144,11 +139,11 @@ export class Dashboard {
 
     return Object.entries(totals)
       .sort((first, second) => second[1] - first[1])
-      .map(([category, amount], index) => ({
+      .map(([category, amount]) => ({
         category,
         amount,
         percent: totalExpenseAmount > 0 ? (amount / totalExpenseAmount) * 100 : 0,
-        color: this.resolveCategoryColor(category, index),
+        color: this.expenseService.getCategoryColor(category),
       }));
   });
 
@@ -195,8 +190,8 @@ export class Dashboard {
       this.categorySpending().map((item) => [item.category, item.amount]),
     );
 
-    return Object.entries(this.categoryBudgets)
-      .map(([category, budget], index) => {
+    return Object.entries(this.categoryBudgets())
+      .map(([category, budget]) => {
         const spent = spendingMap.get(category) ?? 0;
         const usagePercent = budget > 0 ? (spent / budget) * 100 : 0;
 
@@ -214,7 +209,7 @@ export class Dashboard {
           usagePercent,
           progressPercent: Math.min(100, usagePercent),
           status,
-          color: this.resolveCategoryColor(category, index),
+          color: this.expenseService.getCategoryColor(category),
         };
       })
       .sort((first, second) => second.usagePercent - first.usagePercent);
@@ -228,7 +223,8 @@ export class Dashboard {
     [...this.filteredTransactions()]
       .sort(
         (first, second) =>
-          this.resolveTransactionDate(second).getTime() - this.resolveTransactionDate(first).getTime(),
+          this.resolveTransactionDate(second).getTime() -
+          this.resolveTransactionDate(first).getTime(),
       )
       .slice(0, 5),
   );
@@ -266,10 +262,6 @@ export class Dashboard {
     return `${sign}${this.formatCurrency(Math.abs(transaction.amount))}`;
   }
 
-  formatTransactionNotes(transaction: DashboardTransaction): string {
-    return transaction.notes?.trim() ? transaction.notes : '—';
-  }
-
   isIncome(transaction: DashboardTransaction): boolean {
     return this.getTransactionType(transaction) === 'Income';
   }
@@ -284,10 +276,12 @@ export class Dashboard {
 
     const transactionDate = this.resolveTransactionDate(transaction);
     const now = new Date();
+    now.setHours(23, 59, 59, 999); // End of today
 
     if (selectedWindow === 'last30') {
       const last30 = new Date(now);
       last30.setDate(now.getDate() - 30);
+      last30.setHours(0, 0, 0, 0); // Start of day 30 days ago
       return transactionDate >= last30 && transactionDate <= now;
     }
 
@@ -321,18 +315,6 @@ export class Dashboard {
       }
     }
 
-    const parsedId = Number(transaction.id);
-    if (Number.isFinite(parsedId) && parsedId > 0) {
-      const idDate = new Date(parsedId);
-      if (!Number.isNaN(idDate.getTime())) {
-        return idDate;
-      }
-    }
-
     return new Date();
-  }
-
-  private resolveCategoryColor(category: string, index: number): string {
-    return this.categoryColors[category] ?? this.fallbackColors[index % this.fallbackColors.length];
   }
 }

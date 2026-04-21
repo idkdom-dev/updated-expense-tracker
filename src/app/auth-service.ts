@@ -11,6 +11,7 @@ import {
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { ExpenseService } from './expense-service';
 import { firebaseAuth, firestoreDb, googleAuthProvider } from './firebase';
+import { CategoryService } from './category-service';
 
 export interface UserProfile {
   uid: string;
@@ -32,7 +33,8 @@ interface ProfileUpdateInput {
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly expenseService = inject(ExpenseService);
+  private readonly categoryService = inject(CategoryService);
+  // private readonly expenseService = inject(ExpenseService);
 
   readonly currentUser = signal<User | null>(null);
   readonly profile = signal<UserProfile | null>(null);
@@ -50,7 +52,11 @@ export class AuthService {
     const normalizedEmail = email.trim();
     const normalizedName = name.trim();
 
-    const credential = await createUserWithEmailAndPassword(firebaseAuth, normalizedEmail, password);
+    const credential = await createUserWithEmailAndPassword(
+      firebaseAuth,
+      normalizedEmail,
+      password,
+    );
 
     if (normalizedName) {
       await updateProfile(credential.user, { displayName: normalizedName });
@@ -166,8 +172,7 @@ export class AuthService {
     const profile: UserProfile = {
       uid: user.uid,
       email: user.email ?? (typeof data.email === 'string' ? data.email : ''),
-      name:
-        typeof data.name === 'string' && data.name.trim() ? data.name.trim() : fallbackName,
+      name: typeof data.name === 'string' && data.name.trim() ? data.name.trim() : fallbackName,
       monthlyBudgetGoal:
         typeof data.monthlyBudgetGoal === 'number' && data.monthlyBudgetGoal > 0
           ? data.monthlyBudgetGoal
@@ -195,7 +200,7 @@ export class AuthService {
 
   private defaultCategoryBudgets(): Record<string, number> {
     const categoryBudgets: Record<string, number> = {};
-    for (const category of this.expenseService.categories()) {
+    for (const category of this.categoryService.categories()) {
       categoryBudgets[category] = 300;
     }
     return categoryBudgets;
