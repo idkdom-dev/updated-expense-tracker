@@ -1,13 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { NgFor } from '@angular/common';
 import { ExpenseService } from '../expense-service';
 import { Expense } from '../expense';
 
 @Component({
   selector: 'app-edit-expense',
-  imports: [FormsModule, NgFor],
+  imports: [FormsModule],
   templateUrl: './edit-expense.html',
   styleUrl: './edit-expense.css',
 })

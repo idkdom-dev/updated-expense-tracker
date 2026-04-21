@@ -1,0 +1,144 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <h3 class="mb-0">Manage Your Account</h3>
+        </div>
+        <div class="card-body">
+          @if (success()) {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              {{ success() }}
+              <button type="button" class="btn-close" (click)="success.set('')"></button>
+            </div>
+          }
+
+          @if (error()) {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              {{ error() }}
+              <button type="button" class="btn-close" (click)="error.set('')"></button>
+            </div>
+          }
+
+          <!-- User Profile Section -->
+          <div class="section mb-4">
+            <h5 class="border-bottom pb-2 mb-3">User Profile</h5>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="email" class="form-label"><strong>Email Address</strong></label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="email"
+                    [value]="authService.profile()?.email || ''"
+                    disabled
+                  />
+                  <small class="form-text text-muted">Email cannot be changed</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="name" class="form-label"><strong>Full Name</strong></label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="name"
+                    [(ngModel)]="name"
+                    name="name"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Budget Section -->
+          <div class="section mb-4">
+            <h5 class="border-bottom pb-2 mb-3">Budget Settings</h5>
+
+            <div class="mb-3">
+              <label for="monthlyBudget" class="form-label"
+                ><strong>Monthly Budget Goal</strong></label
+              >
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="monthlyBudget"
+                  [(ngModel)]="monthlyBudgetGoal"
+                  name="monthlyBudgetGoal"
+                  min="0"
+                  step="100"
+                />
+              </div>
+              <small class="form-text text-muted">Your target monthly spending limit</small>
+            </div>
+          </div>
+
+          <!-- Category Budgets Section -->
+          <div class="section mb-4">
+            <h5 class="border-bottom pb-2 mb-3">Category Budget Limits</h5>
+            <p class="text-muted">Set maximum budget for each expense category</p>
+
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Budget Limit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (category of categories; track category) {
+                    <tr>
+                      <td>
+                        <strong>{{ category }}</strong>
+                      </td>
+                      <td>
+                        <div class="input-group">
+                          <span class="input-group-text">$</span>
+                          <input
+                            type="number"
+                            class="form-control"
+                            [(ngModel)]="categoryBudgets[category]"
+                            [name]="'budget-' + category"
+                            min="0"
+                            step="50"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-grid gap-2">
+            <button
+              type="button"
+              class="btn btn-primary btn-lg"
+              (click)="updateProfile()"
+              [disabled]="loading()"
+            >
+              @if (loading()) {
+                <span
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Saving changes...
+              } @else {
+                Save Changes
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
