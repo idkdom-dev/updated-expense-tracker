@@ -1,22 +1,28 @@
 <div class="container mt-5">
   <div class="row justify-content-center">
     <div class="col-md-8">
-      <div class="card">
-        <div class="card-header bg-info text-white">
-          <h3 class="mb-0">Manage Your Account</h3>
-        </div>
-        <div class="card-body">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Manage Your Account</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
           @if (success()) {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-              {{ success() }}
-              <button type="button" class="btn-close" (click)="success.set('')"></button>
+            <div class="success-alert">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ success() }}</span>
+              <button mat-icon-button (click)="success.set('')" aria-label="Close">
+                <mat-icon>close</mat-icon>
+              </button>
             </div>
           }
 
           @if (error()) {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-              {{ error() }}
-              <button type="button" class="btn-close" (click)="error.set('')"></button>
+            <div class="error-alert">
+              <mat-icon>error</mat-icon>
+              <span>{{ error() }}</span>
+              <button mat-icon-button (click)="error.set('')" aria-label="Close">
+                <mat-icon>close</mat-icon>
+              </button>
             </div>
           }
 
@@ -27,28 +33,30 @@
             <div class="row mb-3">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="email" class="form-label"><strong>Email Address</strong></label>
-                  <input
-                    type="email"
-                    class="form-control"
-                    id="email"
-                    [value]="authService.profile()?.email || ''"
-                    disabled
-                  />
-                  <small class="form-text text-muted">Email cannot be changed</small>
+                  <mat-form-field appearance="fill" class="w-100">
+                    <mat-label><strong>Email Address</strong></mat-label>
+                    <input
+                      matInput
+                      type="email"
+                      [value]="authService.profile()?.email || ''"
+                      disabled
+                    />
+                    <mat-hint>Email cannot be changed</mat-hint>
+                  </mat-form-field>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="name" class="form-label"><strong>Full Name</strong></label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="name"
-                    [(ngModel)]="name"
-                    name="name"
-                    placeholder="Enter your full name"
-                  />
+                  <mat-form-field appearance="fill" class="w-100">
+                    <mat-label><strong>Full Name</strong></mat-label>
+                    <input
+                      matInput
+                      type="text"
+                      [(ngModel)]="name"
+                      name="name"
+                      placeholder="Enter your full name"
+                    />
+                  </mat-form-field>
                 </div>
               </div>
             </div>
@@ -59,22 +67,19 @@
             <h5 class="border-bottom pb-2 mb-3">Budget Settings</h5>
 
             <div class="mb-3">
-              <label for="monthlyBudget" class="form-label"
-                ><strong>Monthly Budget Goal</strong></label
-              >
-              <div class="input-group">
-                <span class="input-group-text">$</span>
+              <mat-form-field appearance="fill" class="w-100">
+                <mat-label><strong>Monthly Budget Goal</strong></mat-label>
                 <input
+                  matInput
                   type="number"
-                  class="form-control"
-                  id="monthlyBudget"
                   [(ngModel)]="monthlyBudgetGoal"
                   name="monthlyBudgetGoal"
                   min="0"
                   step="100"
                 />
-              </div>
-              <small class="form-text text-muted">Your target monthly spending limit</small>
+                <span matTextPrefix>$</span>
+                <mat-hint>Your target monthly spending limit</mat-hint>
+              </mat-form-field>
             </div>
           </div>
 
@@ -84,183 +89,168 @@
             <p class="text-muted">Set maximum budget for each expense category</p>
 
             <div class="table-responsive">
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th>Category</th>
-                    <th>Budget Limit</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (category of categories; track category) {
-                    <tr>
-                      <td>
-                        <strong>{{ category }}</strong>
-                      </td>
-                      <td>
-                        <div class="input-group">
-                          <span class="input-group-text">$</span>
-                          <input
-                            type="number"
-                            class="form-control"
-                            [(ngModel)]="categoryBudgets[category]"
-                            [name]="'budget-' + category"
-                            min="0"
-                            step="50"
-                          />
-                        </div>
-                      </td>
-                      <td>
-                        @if (expenseService.categoryMetadata()[category]?.isCustom) {
-                          <div class="btn-group" role="group">
-                            <button
-                              type="button"
-                              class="btn btn-outline-primary btn-sm"
-                              (click)="startEditCategory(category)"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              class="btn btn-outline-danger btn-sm"
-                              (click)="deleteCategory(category)"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        }
-                      </td>
-                    </tr>
-                  }
-                </tbody>
+              <table mat-table [dataSource]="categories" class="mat-elevation-1">
+                <ng-container matColumnDef="category">
+                  <th mat-header-cell *matHeaderCellDef>Category</th>
+                  <td mat-cell *matCellDef="let category">
+                    <strong>{{ category }}</strong>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="budget">
+                  <th mat-header-cell *matHeaderCellDef>Budget Limit</th>
+                  <td mat-cell *matCellDef="let category">
+                    <mat-form-field appearance="fill" class="w-100">
+                      <input
+                        matInput
+                        type="number"
+                        [(ngModel)]="categoryBudgets[category]"
+                        [name]="'budget-' + category"
+                        min="0"
+                        step="50"
+                      />
+                      <span matTextPrefix>$</span>
+                    </mat-form-field>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let category">
+                    @if (expenseService.categoryMetadata()[category]?.isCustom) {
+                      <div class="btn-group" role="group">
+                        <button
+                          mat-button
+                          color="primary"
+                          size="small"
+                          (click)="startEditCategory(category)"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          mat-button
+                          color="warn"
+                          size="small"
+                          (click)="deleteCategory(category)"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    }
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="['category', 'budget', 'actions']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['category', 'budget', 'actions']"></tr>
               </table>
             </div>
 
             <!-- Add Custom Category Form -->
             <div class="mt-4">
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                (click)="toggleAddCategoryForm()"
-              >
+              <button mat-button color="secondary" size="small" (click)="toggleAddCategoryForm()">
                 {{ showAddCategoryForm() ? 'Cancel' : 'Add Custom Category' }}
               </button>
 
               @if (showAddCategoryForm()) {
-                <div class="card mt-3">
-                  <div class="card-body">
+                <mat-card class="mt-3">
+                  <mat-card-content>
                     <h6 class="card-title">Add New Category</h6>
                     <div class="mb-3">
-                      <label for="newCategoryName" class="form-label">Category Name</label>
-                      <input
-                        type="text"
-                        class="form-control"
-                        id="newCategoryName"
-                        [(ngModel)]="newCategoryName"
-                        placeholder="Enter category name"
-                      />
+                      <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Category Name</mat-label>
+                        <input
+                          matInput
+                          [(ngModel)]="newCategoryName"
+                          placeholder="Enter category name"
+                        />
+                      </mat-form-field>
                     </div>
                     <div class="mb-3">
-                      <label for="newCategoryColor" class="form-label">Color</label>
-                      <input
-                        type="color"
-                        class="form-control form-control-color"
-                        id="newCategoryColor"
-                        [(ngModel)]="newCategoryColor"
-                        title="Choose your color"
-                      />
+                      <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Color</mat-label>
+                        <input
+                          matInput
+                          type="color"
+                          [(ngModel)]="newCategoryColor"
+                          title="Choose your color"
+                        />
+                      </mat-form-field>
                     </div>
                     <div class="mb-3">
-                      <label for="newCategoryIcon" class="form-label">Icon</label>
-                      <input
-                        type="text"
-                        class="form-control"
-                        id="newCategoryIcon"
-                        [(ngModel)]="newCategoryIcon"
-                        placeholder="Enter icon name (e.g., 'shopping-cart')"
-                      />
+                      <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Icon</mat-label>
+                        <input
+                          matInput
+                          [(ngModel)]="newCategoryIcon"
+                          placeholder="Enter icon name (e.g., 'shopping-cart')"
+                        />
+                      </mat-form-field>
                     </div>
                     <button
-                      type="button"
-                      class="btn btn-primary"
+                      mat-raised-button
+                      color="primary"
                       (click)="addCustomCategory()"
                       [disabled]="loading()"
                     >
                       @if (loading()) {
-                        <span
-                          class="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
+                        <mat-spinner diameter="16" class="me-2"></mat-spinner>
                       }
                       Add Category
                     </button>
-                  </div>
-                </div>
+                  </mat-card-content>
+                </mat-card>
               }
 
               <!-- Edit Category Form -->
               @if (editingCategory) {
-                <div class="card mt-3">
-                  <div class="card-body">
+                <mat-card class="mt-3">
+                  <mat-card-content>
                     <h6 class="card-title">Edit Category</h6>
                     <div class="mb-3">
-                      <label for="editCategoryName" class="form-label">Category Name</label>
-                      <input
-                        type="text"
-                        class="form-control"
-                        id="editCategoryName"
-                        [(ngModel)]="editingCategoryName"
-                        placeholder="Enter new category name"
-                      />
+                      <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Category Name</mat-label>
+                        <input
+                          matInput
+                          [(ngModel)]="editingCategoryName"
+                          placeholder="Enter new category name"
+                        />
+                      </mat-form-field>
                     </div>
                     <div class="mb-3">
-                      <label for="editCategoryColor" class="form-label">Color</label>
-                      <input
-                        type="color"
-                        class="form-control form-control-color"
-                        id="editCategoryColor"
-                        [(ngModel)]="editingColor"
-                        title="Choose your color"
-                      />
+                      <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Color</mat-label>
+                        <input
+                          matInput
+                          type="color"
+                          [(ngModel)]="editingColor"
+                          title="Choose your color"
+                        />
+                      </mat-form-field>
                     </div>
                     <div class="mb-3">
-                      <label for="editCategoryIcon" class="form-label">Icon</label>
-                      <input
-                        type="text"
-                        class="form-control"
-                        id="editCategoryIcon"
-                        [(ngModel)]="editingIcon"
-                        placeholder="Enter icon name"
-                      />
+                      <mat-form-field appearance="fill" class="w-100">
+                        <mat-label>Icon</mat-label>
+                        <input matInput [(ngModel)]="editingIcon" placeholder="Enter icon name" />
+                      </mat-form-field>
                     </div>
                     <div class="btn-group" role="group">
                       <button
-                        type="button"
-                        class="btn btn-primary"
+                        mat-raised-button
+                        color="primary"
                         (click)="saveEditCategory()"
                         [disabled]="loading()"
                       >
                         @if (loading()) {
-                          <span
-                            class="spinner-border spinner-border-sm me-2"
-                            role="status"
-                            aria-hidden="true"
-                          ></span>
+                          <mat-spinner diameter="16" class="me-2"></mat-spinner>
                         }
                         Save Changes
                       </button>
-                      <button
-                        type="button"
-                        class="btn btn-secondary"
-                        (click)="cancelEditCategory()"
-                      >
+                      <button mat-button color="secondary" (click)="cancelEditCategory()">
                         Cancel
                       </button>
                     </div>
-                  </div>
-                </div>
+                  </mat-card-content>
+                </mat-card>
               }
             </div>
           </div>
@@ -268,25 +258,22 @@
           <!-- Action Buttons -->
           <div class="d-grid gap-2">
             <button
-              type="button"
-              class="btn btn-primary btn-lg"
+              mat-raised-button
+              color="primary"
+              size="large"
               (click)="updateProfile()"
               [disabled]="loading()"
             >
               @if (loading()) {
-                <span
-                  class="spinner-border spinner-border-sm me-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
+                <mat-spinner diameter="20" class="me-2"></mat-spinner>
                 Saving changes...
               } @else {
                 Save Changes
               }
             </button>
           </div>
-        </div>
-      </div>
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
 </div>

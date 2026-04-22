@@ -1,11 +1,82 @@
-.container {
-  min-height: 100vh;
+.login-container {
+  min-height: calc(100vh - 64px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+  padding: 2rem;
+  background: var(--mat-sys-surface);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+mat-card-header {
+  margin-bottom: 1.5rem;
+}
+
+mat-card-title {
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0;
+}
+
+mat-card-content {
+  padding: 0 1.5rem 1.5rem;
+}
+
+mat-form-field {
+  margin-bottom: 1rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+  background-color: #fcedea;
+  border-left: 4px solid #d32f2f;
+  color: #c62828;
+}
+
+.error-alert mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.mt-2 {
+  margin-top: 1rem;
+}
+
+.mt-3 {
+  margin-top: 1.5rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-center a {
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+}
+
+.text-center a:hover {
+  text-decoration: underline;
+}
+
+.spinner-inline {
+  display: inline-block;
+  margin-right: 0.5rem;
 }
 
 .card {

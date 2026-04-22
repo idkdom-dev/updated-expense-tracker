@@ -1,5 +1,18 @@
 import { Component, computed, inject, signal, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatListModule } from '@angular/material/list';
+import { MatTableModule } from '@angular/material/table';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatTabsModule } from '@angular/material/tabs';
 import { Expense } from '../expense';
 import { ExpenseService } from '../expense-service';
 import { AuthService } from '../auth-service';
@@ -31,7 +44,22 @@ interface CategoryBudgetProgress {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink],
+  imports: [
+    CommonModule,
+    RouterLink,
+    MatCardModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatTooltipModule,
+    MatDividerModule,
+    MatListModule,
+    MatTableModule,
+    MatBadgeModule,
+    MatTabsModule,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

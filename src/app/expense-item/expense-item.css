@@ -1,35 +1,69 @@
-.highlighted {
-  border: 2px solid green;
+.expense-card {
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
 }
 
-.category-work {
-  background-color: #eaf4ff;
+.expense-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.category-personal {
-  background-color: #ffe8e6;
+.expense-card.highlighted {
+  border-left: 4px solid var(--mat-sys-error);
 }
 
-.category-grocery {
-  background-color: #e8f5e9;
+.card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem !important;
+  gap: 1rem;
 }
 
-.category-utilities {
-  background-color: #fff8e1;
+.expense-info {
+  flex: 1;
 }
 
-.category-shopping {
-  background-color: #f3e5f5;
+.expense-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.category-travel {
-  background-color: #e0f7fa;
+.category-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
 }
 
-.category-food {
-  background-color: #fff3e0;
+.expense-details {
+  display: flex;
+  flex-direction: column;
 }
 
-.category-label {
-  color: teal;
+.expense-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+}
+
+.expense-category {
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant);
+  margin-top: 0.25rem;
+}
+
+.expense-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.amount {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+  min-width: 100px;
+  text-align: right;
 }

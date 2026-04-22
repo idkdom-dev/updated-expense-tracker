@@ -1,32 +1,36 @@
-<div
-  class="card mb-3"
-  [class.highlighted]="highlight()"
-  [class.category-work]="expense()?.category === 'Work'"
-  [class.category-personal]="expense()?.category === 'Personal'"
-  [class.category-grocery]="expense()?.category === 'Grocery'"
-  [class.category-utilities]="expense()?.category === 'Utilities'"
-  [class.category-shopping]="expense()?.category === 'Shopping'"
-  [class.category-travel]="expense()?.category === 'Travel'"
-  [class.category-food]="expense()?.category === 'Food'"
->
-  <div class="card-body d-flex justify-content-between align-items-center">
-    <div>
-      <h5 class="mb-1">{{ expense()?.title || 'Untitled' }}</h5>
-      <small class="fw-semibold category-label">
-        {{ expense()?.category || 'Uncategorized' }}
-      </small>
-    </div>
-    <div class="text-end">
-      <div class="fw-bold text-danger">
-        {{
-          expense()?.amount?.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) ||
-            '$0.00'
-        }}
+@if (expense(); as exp) {
+  <mat-card class="expense-card" [class.highlighted]="highlight()">
+    <mat-card-content class="card-content">
+      <div class="expense-info">
+        <div class="expense-header">
+          <mat-icon class="category-icon" [style.color]="getCategoryColor(exp.category)">
+            {{ getCategoryIcon(exp.category) }}
+          </mat-icon>
+          <div class="expense-details">
+            <h3 class="expense-title">{{ exp.title || 'Untitled' }}</h3>
+            <span class="expense-category">
+              {{ exp.category || 'Uncategorized' }}
+            </span>
+          </div>
+        </div>
       </div>
-      <a class="btn btn-primary btn-sm m-2" [routerLink]="['/edit', expense()?.id]"> Edit </a>
-      <button type="button" class="btn btn-danger btn-sm m-2" (click)="deleteExpense()">
-        Delete
-      </button>
-    </div>
-  </div>
-</div>
+      <div class="expense-actions">
+        <div class="amount">
+          {{ exp.amount | currency: 'USD' : 'symbol' : '1.2-2' }}
+        </div>
+        <a mat-icon-button [routerLink]="['/edit', exp.id]" matTooltip="Edit">
+          <mat-icon>edit</mat-icon>
+        </a>
+        <button
+          type="button"
+          mat-icon-button
+          (click)="deleteExpense()"
+          matTooltip="Delete"
+          color="warn"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+}

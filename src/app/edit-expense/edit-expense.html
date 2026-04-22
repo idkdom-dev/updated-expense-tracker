@@ -1,44 +1,94 @@
-<div class="container mt-4">
-  <h2 class="text-center mb-4">Edit Expense</h2>
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <form class="card-body" (ngSubmit)="saveExpense()">
-        <div class="mb-3">
-          <p>Expense ID: {{ id }}</p>
-          <label class="form-label">Expense Name</label>
+<div class="edit-expense-container">
+  <mat-card class="expense-card">
+    <mat-card-header>
+      <mat-card-title>Edit Expense</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (error()) {
+        <div class="error-alert">
+          <mat-icon>error</mat-icon>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <form (ngSubmit)="saveExpense()">
+        <p class="expense-id-text"><strong>Expense ID:</strong> {{ id }}</p>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Expense Name</mat-label>
           <input
-            name="title"
-            [(ngModel)]="title"
-            required
+            matInput
             type="text"
-            class="form-control"
+            [(ngModel)]="title"
+            name="title"
             placeholder="Enter expense name"
-          />
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Amount ($)</label>
-          <input
-            name="amount"
-            [(ngModel)]="amount"
             required
-            type="number"
-            class="form-control"
-            placeholder="Enter amount"
           />
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Category</label>
-          <select name="category" [(ngModel)]="category" required class="form-select">
-            <option value disabled selected>Select category</option>
-            @for (category of expenseService.categories(); track category) {
-              <option [value]="category">
-                {{ category }}
-              </option>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Amount ($)</mat-label>
+          <input
+            matInput
+            type="number"
+            [(ngModel)]="amount"
+            name="amount"
+            placeholder="Enter amount"
+            required
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="category" name="category" required>
+            @for (cat of categoryList; track cat) {
+              <mat-option [value]="cat">{{ cat }}</mat-option>
             }
-          </select>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Date</mat-label>
+          <input matInput type="date" [(ngModel)]="date" name="date" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description (Optional)</mat-label>
+          <textarea
+            matInput
+            [(ngModel)]="description"
+            name="description"
+            placeholder="Enter expense description"
+            rows="3"
+          ></textarea>
+        </mat-form-field>
+
+        <div class="button-group">
+          <button type="submit" mat-raised-button color="primary" [disabled]="loading()">
+            @if (loading()) {
+              <ng-container>
+                <mat-icon>hourglass_empty</mat-icon>
+                Saving...
+              </ng-container>
+            } @else {
+              <ng-container>
+                <mat-icon>save</mat-icon>
+                Save Expense
+              </ng-container>
+            }
+          </button>
+          <button
+            type="button"
+            mat-raised-button
+            color="warn"
+            (click)="deleteExpense()"
+            [disabled]="loading()"
+          >
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
         </div>
-        <button type="submit" class="btn btn-primary">Save Expense</button>
       </form>
-    </div>
-  </div>
+    </mat-card-content>
+  </mat-card>
 </div>

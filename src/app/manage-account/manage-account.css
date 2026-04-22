@@ -98,7 +98,52 @@
 .alert {
   border-radius: 0.35rem;
   border: none;
+}
+
+.success-alert {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
   margin-bottom: 1.5rem;
+  border-radius: 4px;
+  background-color: #d4edda;
+  border-left: 4px solid #28a745;
+  color: #155724;
+}
+
+.success-alert mat-icon {
+  color: #28a745;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.success-alert button {
+  margin-left: auto;
+}
+
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+  background-color: #f8d7da;
+  border-left: 4px solid #dc3545;
+  color: #721c24;
+}
+
+.error-alert mat-icon {
+  color: #dc3545;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.error-alert button {
+  margin-left: auto;
 }
 
 .form-text {

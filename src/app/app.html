@@ -1,47 +1,16 @@
-<nav class="navbar navbar-dark navbar-expand-lg bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" routerLink="" style="cursor: pointer">Expense Tracker</a>
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#navbarNav"
-      aria-controls="navbarNav"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        @if (authService.isLoggedIn()) {
-          <li class="nav-item ms-2">
-            <a class="btn btn-secondary nav-item" routerLink="">Dashboard</a>
-          </li>
-          <li class="nav-item ms-2">
-            <a class="btn btn-secondary nav-item" routerLink="add">Add Transaction</a>
-          </li>
-          <li class="nav-item ms-2">
-            <a class="btn btn-secondary nav-item" routerLink="expenses">View Transactions</a>
-          </li>
-          <li class="nav-item ms-2">
-            <a class="btn btn-info nav-item" routerLink="account">Manage Account</a>
-          </li>
-          <li class="nav-item ms-2">
-            <button class="btn btn-danger nav-item" (click)="authService.signOutUser()">
-              Logout
-            </button>
-          </li>
-        } @else {
-          <li class="nav-item ms-2">
-            <a class="btn btn-primary nav-item" routerLink="login">Login</a>
-          </li>
-          <li class="nav-item ms-2">
-            <a class="btn btn-success nav-item" routerLink="register">Register</a>
-          </li>
-        }
-      </ul>
-    </div>
+<mat-toolbar color="primary">
+  <span class="spacer">Expense Tracker</span>
+  <div>
+    @if (authService.isLoggedIn()) {
+      <button mat-button routerLink="">Dashboard</button>
+      <button mat-button routerLink="add">Add Transaction</button>
+      <button mat-button routerLink="expenses">View Transactions</button>
+      <button mat-button routerLink="account">Manage Account</button>
+      <button mat-button (click)="authService.signOutUser()">Logout</button>
+    } @else {
+      <button mat-button routerLink="login">Login</button>
+      <button mat-stroked-button routerLink="register">Register</button>
+    }
   </div>
-</nav>
+</mat-toolbar>
 <router-outlet />
