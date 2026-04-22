@@ -3,14 +3,17 @@ export interface Expense {
   title: string;
   amount: number;
   category: string;
-  date: string; // ISO 8601 format (YYYY-MM-DD)
+  date: string;
   description?: string;
-  userId?: string;
+  type?: 'expense' | 'income';
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CategoryMetadata {
   name: string;
   color: string;
   icon: string;
-  isCustom?: boolean;
+  isCustom: boolean;
 }

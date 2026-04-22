@@ -1,7 +1,7 @@
 <div class="edit-expense-container">
   <mat-card class="expense-card">
     <mat-card-header>
-      <mat-card-title>Edit Expense</mat-card-title>
+      <mat-card-title>Edit Transaction</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       @if (error()) {
@@ -12,16 +12,24 @@
       }
 
       <form (ngSubmit)="saveExpense()">
-        <p class="expense-id-text"><strong>Expense ID:</strong> {{ id }}</p>
+        <p class="expense-id-text"><strong>Transaction ID:</strong> {{ id }}</p>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Expense Name</mat-label>
+          <mat-label>Transaction Type</mat-label>
+          <mat-select [(ngModel)]="transactionType" name="transactionType" required>
+            <mat-option value="expense">Expense</mat-option>
+            <mat-option value="income">Income</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Transaction Name</mat-label>
           <input
             matInput
             type="text"
             [(ngModel)]="title"
             name="title"
-            placeholder="Enter expense name"
+            placeholder="Enter transaction name"
             required
           />
         </mat-form-field>
@@ -58,7 +66,7 @@
             matInput
             [(ngModel)]="description"
             name="description"
-            placeholder="Enter expense description"
+            placeholder="Enter transaction description"
             rows="3"
           ></textarea>
         </mat-form-field>
@@ -73,7 +81,7 @@
             } @else {
               <ng-container>
                 <mat-icon>save</mat-icon>
-                Save Expense
+                Save Transaction
               </ng-container>
             }
           </button>

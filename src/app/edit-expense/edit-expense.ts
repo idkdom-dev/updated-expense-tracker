@@ -14,6 +14,10 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { ExpenseService } from '../expense-service';
 import { Expense } from '../expense';
 
+interface EditExpenseData extends Expense {
+  type: 'expense' | 'income';
+}
+
 @Component({
   selector: 'app-edit-expense',
   imports: [
@@ -34,6 +38,7 @@ import { Expense } from '../expense';
 })
 export class EditExpense implements OnInit {
   id = '';
+  transactionType: 'expense' | 'income' = 'expense';
   title = '';
   amount: number | null = null;
   category = 'Personal';
@@ -69,6 +74,9 @@ export class EditExpense implements OnInit {
     this.category = expense.category;
     this.date = expense.date || new Date().toISOString().split('T')[0];
     this.description = expense.description || '';
+
+    // Set transaction type from existing expense
+    this.transactionType = (expense as EditExpenseData).type || 'expense';
   }
 
   async saveExpense() {
@@ -94,13 +102,17 @@ export class EditExpense implements OnInit {
       this.loading.set(true);
       this.error.set('');
 
-      const updatedExpense: Expense = {
+      const updatedExpense: EditExpenseData = {
         id: this.id,
         title: this.title.trim(),
         amount: Number(this.amount),
         category: this.category,
         date: this.date,
         description: this.description.trim(),
+        type: this.transactionType,
+        userId: 'current-user-id', // This will be replaced with actual user ID
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       await this.expenseService.updateExpense(updatedExpense);
@@ -113,7 +125,7 @@ export class EditExpense implements OnInit {
   }
 
   async deleteExpense() {
-    if (!confirm('Are you sure you want to delete this expense?')) {
+    if (!confirm('Are you sure you want to delete this transaction?')) {
       return;
     }
 
@@ -134,6 +146,6 @@ export class EditExpense implements OnInit {
     if (err instanceof Error) {
       return err.message;
     }
-    return 'An error occurred while saving the expense.';
+    return 'An error occurred while saving the transaction.';
   }
 }

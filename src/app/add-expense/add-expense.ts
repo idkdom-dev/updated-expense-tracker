@@ -14,6 +14,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { ExpenseService } from '../expense-service';
 
+interface ExpenseData {
+  title: string;
+  amount: number;
+  category: string;
+  date: string;
+  description?: string;
+  type: 'expense' | 'income';
+}
+
 @Component({
   selector: 'app-add-expense',
   imports: [
@@ -34,6 +43,7 @@ import { ExpenseService } from '../expense-service';
   styleUrl: './add-expense.css',
 })
 export class AddExpense {
+  transactionType: 'expense' | 'income' = 'expense';
   title = '';
   amount: number | null = null;
   category: string = 'Personal';
@@ -76,13 +86,16 @@ export class AddExpense {
       this.loading.set(true);
       this.error.set('');
 
-      await this.expenseService.addExpense({
+      const expenseData: ExpenseData = {
         title: this.title.trim(),
         amount: Number(this.amount),
         category: this.category,
         date: this.date,
         description: this.description.trim(),
-      });
+        type: this.transactionType,
+      };
+
+      await this.expenseService.addExpense(expenseData);
 
       void this.router.navigate(['/expenses']);
     } catch (err) {
@@ -134,6 +147,6 @@ export class AddExpense {
     if (err instanceof Error) {
       return err.message;
     }
-    return 'An error occurred while adding the expense.';
+    return 'An error occurred while adding the transaction.';
   }
 }

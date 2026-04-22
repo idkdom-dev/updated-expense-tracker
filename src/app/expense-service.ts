@@ -72,7 +72,9 @@ export class ExpenseService {
     return this.expenses().find((expense) => expense.id === id);
   }
 
-  async addExpense(expense: Omit<Expense, 'id' | 'userId'>): Promise<string> {
+  async addExpense(
+    expense: Omit<Expense, 'id' | 'userId' | 'createdAt' | 'updatedAt'>,
+  ): Promise<string> {
     const user = this.authService.currentUser();
     if (!user) {
       throw new Error('User must be logged in to add expenses');
@@ -95,8 +97,25 @@ export class ExpenseService {
         ...expense,
         id: docRef.id,
         userId: user.uid,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       this.expenses.update((list) => [...list, newExpense]);
+
+      // Ensure the expense's category is in the profile's categoryBudgets
+      const profile = this.authService.profile();
+      if (profile && expense.category) {
+        const currentBudgets = profile.categoryBudgets;
+        if (!currentBudgets[expense.category]) {
+          const newCategoryBudgets = { ...currentBudgets };
+          newCategoryBudgets[expense.category] = 0; // Default budget for new category
+          await this.authService.updateAccountProfile({
+            name: profile.name,
+            monthlyBudgetGoal: profile.monthlyBudgetGoal,
+            categoryBudgets: newCategoryBudgets,
+          });
+        }
+      }
 
       return docRef.id;
     } catch (err) {
@@ -188,6 +207,20 @@ export class ExpenseService {
         ...meta,
         [name]: metadata,
       }));
+
+      // Add category to profile's categoryBudgets
+      const profile = this.authService.profile();
+      if (profile) {
+        const newCategoryBudgets = { ...profile.categoryBudgets };
+        if (!newCategoryBudgets[name]) {
+          newCategoryBudgets[name] = 0; // Default budget for new category
+        }
+        await this.authService.updateAccountProfile({
+          name: profile.name,
+          monthlyBudgetGoal: profile.monthlyBudgetGoal,
+          categoryBudgets: newCategoryBudgets,
+        });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error adding category';
       this.error.set(message);
@@ -247,17 +280,24 @@ export class ExpenseService {
       const q = query(expensesCollection, where('category', '==', categoryName));
       const snapshot = await getDocs(q);
 
-      // Update each expense's category to "Uncategorized"
+      // Update each expense's category to "Personal"
       const updatePromises = snapshot.docs.map((doc) => {
         const expenseRef = doc.ref;
         return updateDoc(expenseRef, {
-          category: 'Uncategorized',
+          category: 'Personal',
           updatedAt: serverTimestamp(),
         });
       });
 
       // Wait for all expense updates to complete
       await Promise.all(updatePromises);
+
+      // Update local state - change expenses in memory to "Personal"
+      this.expenses.update((list) =>
+        list.map((expense) =>
+          expense.category === categoryName ? { ...expense, category: 'Personal' } : expense,
+        ),
+      );
 
       // Delete the category metadata from Firebase
       const categoryRef = doc(firestoreDb, `users/${user.uid}/categories/${categoryName}`);
@@ -302,12 +342,12 @@ export class ExpenseService {
       this.isLoading.set(true);
       this.error.set('');
 
-      // First, update all expenses that use the old category name
+      // First, update all expenses that use the old category name to the new name
       const expensesCollection = collection(firestoreDb, `users/${user.uid}/expenses`);
       const q = query(expensesCollection, where('category', '==', oldName));
       const snapshot = await getDocs(q);
 
-      // Update each expense's category in Firebase
+      // Update each expense's category to the new name in Firebase
       const updatePromises = snapshot.docs.map((doc) => {
         const expenseRef = doc.ref;
         return updateDoc(expenseRef, {
@@ -335,7 +375,7 @@ export class ExpenseService {
       }
 
       // Update local state - proper handling of all updates
-      // Update expenses in local state
+      // Update expenses in local state to use the new category name
       this.expenses.update((list) =>
         list.map((expense) =>
           expense.category === oldName ? { ...expense, category: newName } : expense,
@@ -361,19 +401,21 @@ export class ExpenseService {
       });
 
       // Update category budgets in profile
+      // Transfer the budget from old category name to new category name
       const profile = this.authService.profile();
       if (profile) {
         const newCategoryBudgets = { ...profile.categoryBudgets };
+        // Transfer budget from old name to new name
         if (newCategoryBudgets[oldName] !== undefined) {
           newCategoryBudgets[newName] = newCategoryBudgets[oldName];
           delete newCategoryBudgets[oldName];
-          // Update the profile in AuthService
-          await this.authService.updateAccountProfile({
-            name: profile.name,
-            monthlyBudgetGoal: profile.monthlyBudgetGoal,
-            categoryBudgets: newCategoryBudgets,
-          });
         }
+        // Update the profile in AuthService
+        await this.authService.updateAccountProfile({
+          name: profile.name,
+          monthlyBudgetGoal: profile.monthlyBudgetGoal,
+          categoryBudgets: newCategoryBudgets,
+        });
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error renaming category';
@@ -402,7 +444,10 @@ export class ExpenseService {
           category: data['category'] || 'Personal',
           date: data['date'] || new Date().toISOString().split('T')[0],
           description: data['description'] || '',
+          type: data['type'] || 'expense',
           userId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         });
       });
 

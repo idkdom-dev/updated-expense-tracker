@@ -222,7 +222,9 @@ export class ManageAccount {
 
   async deleteCategory(category: string): Promise<void> {
     if (
-      !confirm(`Are you sure you want to delete the "${category}" category? This cannot be undone.`)
+      !confirm(
+        `Warning: any transactions under this category, after deleting, will be defaulted to the Personal category.\n\nAre you sure you want to delete the "${category}" category? This cannot be undone.`,
+      )
     ) {
       return;
     }
@@ -233,8 +235,8 @@ export class ManageAccount {
 
       await this.expenseService.deleteCategory(category);
 
-      // Remove budget for deleted category
-      delete this.categoryBudgets[category];
+      // Profile is automatically updated by expenseService.deleteCategory()
+      // The local categoryBudgets will be synced when profile updates (via effect in constructor)
 
       this.success.set('Category deleted successfully!');
       setTimeout(() => this.success.set(''), 3000);

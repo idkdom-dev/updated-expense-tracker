@@ -20,10 +20,7 @@ import { AuthService } from '../auth-service';
 type DateWindowFilter = 'all' | 'thisMonth' | 'last30';
 type AmountRangeFilter = 'all' | '0-50' | '50-200' | '200+';
 type TransactionType = 'Income' | 'Expense';
-
-interface DashboardTransaction extends Expense {
-  type?: TransactionType;
-}
+type DashboardTransaction = Expense;
 
 interface CategorySpend {
   category: string;
@@ -134,15 +131,11 @@ export class Dashboard {
   );
 
   readonly expenseTransactions = computed(() =>
-    this.filteredTransactions().filter(
-      (transaction) => this.getTransactionType(transaction) === 'Expense',
-    ),
+    this.filteredTransactions().filter((transaction) => transaction.type === 'expense'),
   );
 
   readonly incomeTransactions = computed(() =>
-    this.filteredTransactions().filter(
-      (transaction) => this.getTransactionType(transaction) === 'Income',
-    ),
+    this.filteredTransactions().filter((transaction) => transaction.type === 'income'),
   );
 
   readonly totalExpenses = computed(() =>
@@ -234,7 +227,9 @@ export class Dashboard {
       this.categorySpending().map((item) => [item.category, item.amount]),
     );
 
+    // Only show categories that exist in the current categories list
     return Object.entries(this.categoryBudgets())
+      .filter(([category]) => this.expenseService.categories().includes(category))
       .map(([category, budget]) => {
         const spent = spendingMap.get(category) ?? 0;
         const usagePercent = budget > 0 ? (spent / budget) * 100 : 0;
@@ -311,7 +306,18 @@ export class Dashboard {
   }
 
   private getTransactionType(transaction: DashboardTransaction): TransactionType {
-    return transaction.type === 'Income' ? 'Income' : 'Expense';
+    // If type is explicitly set, use it
+    if (transaction.type) {
+      const type = transaction.type;
+      if (type === 'expense') {
+        return 'Expense';
+      } else if (type === 'income') {
+        return 'Income';
+      }
+    }
+
+    // Default to expense for backward compatibility
+    return 'Expense';
   }
 
   private passesDateWindowFilter(transaction: DashboardTransaction): boolean {
